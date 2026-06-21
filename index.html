@@ -244,8 +244,8 @@
   /* VOTE SUMMARY */
   .vote-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .vote-box { border-radius: var(--r-sm); padding: 14px; text-align: center; }
-  .vote-box.favor { background: rgba(43,176,122,.12); border: 1px solid rgba(43,176,122,.25); }
-  .vote-box.contra { background: rgba(224,92,106,.08); border: 1px solid rgba(224,92,106,.2); }
+  .vote-box.favor { background: rgba(224,92,106,.08); border: 1px solid rgba(224,92,106,.2); }
+  .vote-box.contra { background: rgba(43,176,122,.12); border: 1px solid rgba(43,176,122,.25); }
   .vote-number { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; }
   .vote-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; opacity: .7; margin-top: 2px; }
 
@@ -1154,12 +1154,12 @@
         <!-- Resultado -->
         <div class="vote-row">
           <div class="vote-box favor">
-            <div class="vote-number" style="color:var(--accent3);">1</div>
-            <div class="vote-label" style="color:var(--accent3);">A favor</div>
+            <div class="vote-number" style="color:var(--danger);">1</div>
+            <div class="vote-label" style="color:var(--danger);">A favor</div>
           </div>
           <div class="vote-box contra">
-            <div class="vote-number" style="color:var(--danger);">3</div>
-            <div class="vote-label" style="color:var(--danger);">En contra</div>
+            <div class="vote-number" style="color:var(--accent3);">3</div>
+            <div class="vote-label" style="color:var(--accent3);">En contra</div>
           </div>
         </div>
 
