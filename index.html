@@ -1,0 +1,2219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Martina — App Financiera</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f8f5;
+    --surface: #eaf3ed;
+    --surface2: #ddeee3;
+    --border: rgba(74,140,100,0.13);
+    --accent: #3a9e6f;
+    --accent2: #f0a500;
+    --accent3: #2bb07a;
+    --danger: #e05c6a;
+    --text: #1a2e23;
+    --text2: #6b8f76;
+    --card: rgba(255,255,255,0.72);
+    --glass: rgba(58,158,111,0.07);
+    --r: 18px;
+    --r-sm: 10px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body {
+    background: #c8e6d0;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* PHONE SHELL */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(40,100,60,.18), 0 0 0 1px rgba(58,158,111,.15), inset 0 0 0 1px rgba(255,255,255,.6);
+  }
+
+  /* STATUS BAR */
+  .statusbar {
+    position: absolute; top:0; left:0; right:0; z-index:100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0;
+    font-size: 12px; font-weight: 600; color: var(--text2);
+  }
+  .statusbar .notch {
+    width: 120px; height: 30px; background: #1a2e23;
+    border-radius: 0 0 20px 20px; position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+  }
+
+  /* SCREENS */
+  .screens { position: relative; width:100%; height:100%; }
+  .screen {
+    position: absolute; inset: 0;
+    padding: 58px 0 0;
+    opacity: 0; pointer-events: none;
+    transform: translateX(30px);
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display:none; }
+  .screen.active {
+    opacity: 1; pointer-events: all;
+    transform: translateX(0);
+  }
+  .screen.out-left { transform: translateX(-30px); }
+
+  /* SCROLL CONTENT */
+  .scroll-content { padding: 16px 20px 100px; }
+
+  /* NAV BAR */
+  .navbar {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(244,248,245,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 10px 0 24px;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; transition: all .2s; flex: 1;
+    padding: 4px 0;
+    background: none; border: none;
+  }
+  .nav-item .nav-icon {
+    width: 42px; height: 42px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; transition: all .25s;
+    background: transparent;
+  }
+  .nav-item.active .nav-icon {
+    background: var(--accent);
+    box-shadow: 0 4px 16px rgba(58,158,111,.35);
+  }
+  .nav-item .nav-label { font-size: 10px; color: var(--text2); font-weight: 500; transition: color .2s; line-height:1; }
+  .nav-item.active .nav-label { color: var(--accent); }
+
+  /* HEADER */
+  .screen-header {
+    padding: 12px 20px 0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .screen-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 26px; color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  /* AVATAR */
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #c084fc);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #fff;
+    border: 2px solid rgba(124,92,252,.4);
+    overflow: hidden; flex-shrink: 0;
+  }
+  .avatar img { width:100%; height:100%; object-fit: cover; }
+
+  /* CARDS */
+  .card {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 18px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 12px rgba(40,100,60,.06);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .card:active { transform: scale(.985); }
+  .card.accent-card {
+    background: linear-gradient(135deg, rgba(58,158,111,.12), rgba(43,176,122,.06));
+    border-color: rgba(58,158,111,.25);
+  }
+  .card.green-card {
+    background: linear-gradient(135deg, rgba(43,176,122,.12), rgba(43,176,122,.04));
+    border-color: rgba(43,176,122,.25);
+  }
+  .card.yellow-card {
+    background: linear-gradient(135deg, rgba(240,165,0,.1), rgba(240,165,0,.04));
+    border-color: rgba(240,165,0,.22);
+  }
+  .card.red-card {
+    background: linear-gradient(135deg, rgba(224,92,106,.08), rgba(224,92,106,.03));
+    border-color: rgba(224,92,106,.22);
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap { background: rgba(58,158,111,.12); border-radius: 99px; height:8px; overflow: hidden; margin: 10px 0 6px; }
+  .progress-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), #6ecfa0);
+    transition: width 1s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute; right:0; top:50%;
+    transform: translate(50%,-50%);
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .progress-green .progress-fill { background: linear-gradient(90deg, var(--accent3), #6eecd5); }
+  .progress-yellow .progress-fill { background: linear-gradient(90deg, var(--accent2), #fde68a); }
+
+  /* STAT GRID */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .stat-card {
+    background: rgba(255,255,255,0.8); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 16px 14px;
+    box-shadow: 0 2px 10px rgba(40,100,60,.06);
+  }
+  .stat-label { font-size: 11px; color: var(--text2); font-weight: 500; margin-bottom: 6px; letter-spacing: .3px; text-transform: uppercase; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; line-height: 1; }
+  .stat-value.green { color: var(--accent3); }
+  .stat-value.yellow { color: var(--accent2); }
+  .stat-value.purple { color: var(--accent); }
+  .stat-value.red { color: var(--danger); }
+  .stat-icon { font-size: 22px; margin-bottom: 8px; }
+
+  /* BADGE / PILL */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 99px;
+    font-size: 12px; font-weight: 600;
+  }
+  .pill.green { background: rgba(43,176,122,.15); color: #1e7a52; }
+  .pill.red { background: rgba(224,92,106,.12); color: var(--danger); }
+  .pill.purple { background: rgba(58,158,111,.15); color: var(--accent); }
+  .pill.yellow { background: rgba(240,165,0,.13); color: #b07800; }
+
+  /* BUTTON */
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 20px; border-radius: var(--r-sm);
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    cursor: pointer; border: none; transition: all .2s;
+    width: 100%;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 16px rgba(58,158,111,.35); }
+  .btn-secondary { background: rgba(255,255,255,.8); border: 1px solid var(--border); color: var(--text); }
+  .btn-green { background: var(--accent3); color: #fff; box-shadow: 0 4px 16px rgba(43,176,122,.3); }
+  .btn-danger { background: var(--danger); color: #fff; box-shadow: 0 4px 16px rgba(224,92,106,.3); }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* SECTION LABEL */
+  .section-label { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+  /* FRIEND ROW */
+  .friend-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px; background: rgba(255,255,255,.85);
+    border: 1px solid var(--border); border-radius: var(--r-sm);
+    margin-bottom: 10px; box-shadow: 0 1px 6px rgba(40,100,60,.05);
+  }
+  .friend-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+  }
+  .friend-comment { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .friend-vote { margin-left: auto; font-size: 22px; }
+
+  /* VOTE SUMMARY */
+  .vote-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .vote-box { border-radius: var(--r-sm); padding: 14px; text-align: center; }
+  .vote-box.favor { background: rgba(43,176,122,.12); border: 1px solid rgba(43,176,122,.25); }
+  .vote-box.contra { background: rgba(224,92,106,.08); border: 1px solid rgba(224,92,106,.2); }
+  .vote-number { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; }
+  .vote-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; opacity: .7; margin-top: 2px; }
+
+  /* HISTORY ROW */
+  .hist-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; background: rgba(255,255,255,.85);
+    border: 1px solid var(--border); border-radius: var(--r-sm);
+    margin-bottom: 8px; box-shadow: 0 1px 6px rgba(40,100,60,.05);
+  }
+  .hist-name { font-size: 14px; font-weight: 500; }
+  .hist-status { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .hist-status.evitado { color: #1e7a52; }
+  .hist-status.comprado { color: var(--danger); }
+
+  /* LEVEL BADGE */
+  .level-badge {
+    background: linear-gradient(135deg, rgba(240,165,0,.1), rgba(240,165,0,.04));
+    border: 1px solid rgba(240,165,0,.25);
+    border-radius: var(--r); padding: 18px; margin-bottom: 14px;
+    text-align: center;
+  }
+  .level-number { font-family: 'Syne', sans-serif; font-size: 13px; color: #b07800; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .level-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #b07800; }
+
+  /* MEDAL ROW */
+  .medal-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: rgba(255,255,255,.85); border: 1px solid var(--border); border-radius: var(--r-sm); margin-bottom: 8px; }
+  .medal-icon { font-size: 22px; }
+  .medal-text { font-size: 13px; color: var(--text); }
+
+  /* NEXT CHALLENGE */
+  .challenge-card {
+    background: linear-gradient(135deg, rgba(58,158,111,.12), rgba(43,176,122,.05));
+    border: 1px solid rgba(58,158,111,.22);
+    border-radius: var(--r); padding: 18px; margin-bottom: 14px;
+  }
+
+  /* SETTING ROW */
+  .setting-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; background: rgba(255,255,255,.85);
+    border: 1px solid var(--border); border-radius: var(--r-sm);
+    margin-bottom: 8px; cursor: pointer; transition: background .15s;
+    box-shadow: 0 1px 6px rgba(40,100,60,.05);
+  }
+  .setting-row:active { background: rgba(58,158,111,.06); }
+  .setting-icon { font-size: 18px; width: 32px; text-align: center; }
+  .setting-text { font-size: 14px; font-weight: 500; }
+  .setting-badge { margin-left: auto; }
+
+  /* ALERT CARD */
+  .alert-main {
+    background: linear-gradient(135deg, rgba(224,92,106,.08), rgba(224,92,106,.03));
+    border: 1px solid rgba(224,92,106,.22);
+    border-radius: var(--r); padding: 18px; margin-bottom: 14px;
+  }
+  .alert-title { font-size: 13px; color: var(--danger); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+
+  /* MONEY DISPLAY */
+  .money-hero {
+    background: linear-gradient(135deg, rgba(58,158,111,.14), rgba(43,176,122,.06));
+    border: 1px solid rgba(58,158,111,.2);
+    border-radius: var(--r); padding: 24px 20px; margin-bottom: 16px;
+    text-align: center;
+  }
+  .money-label { font-size: 12px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .money-amount { font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800; color: var(--text); }
+
+  /* GREETING */
+  .greeting-wrap { padding: 16px 20px 0; }
+  .greeting-sub { font-size: 13px; color: var(--text2); margin-bottom: 2px; }
+  .greeting-name { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  .greeting-name span { color: var(--accent); }
+
+  /* BACK BUTTON */
+  .back-btn {
+    background: none; border: none; color: var(--text2);
+    font-size: 22px; cursor: pointer; padding: 0; margin-right: 10px;
+    display: flex; align-items: center; transition: color .2s;
+  }
+  .back-btn:hover { color: var(--text); }
+
+  /* CONSEJOS */
+  .consejo-step { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color:#fff; font-size:13px; font-weight:700; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
+  .step-text { font-size: 14px; color: var(--text); line-height: 1.5; }
+
+  /* CONNECTED ACCOUNT */
+  .account-row { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:rgba(255,255,255,.85); border:1px solid var(--border); border-radius:var(--r-sm); margin-bottom:8px; }
+  .account-info { display:flex; align-items:center; gap:10px; }
+  .account-icon { font-size:20px; }
+  .account-name { font-size:14px; font-weight:500; }
+
+  /* GLOW BG */
+  .glow-bg {
+    position: absolute; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(80px); opacity: .15;
+  }
+
+  /* MICRO ANIMATIONS */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.04); } }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .screen.active .card { animation: fadeUp .35s ease both; }
+  .screen.active .card:nth-child(2) { animation-delay: .05s; }
+  .screen.active .card:nth-child(3) { animation-delay: .10s; }
+  .screen.active .card:nth-child(4) { animation-delay: .15s; }
+  .screen.active .card:nth-child(5) { animation-delay: .20s; }
+
+  .btn-primary:hover { box-shadow: 0 6px 24px rgba(58,158,111,.45); transform: translateY(-1px); }
+
+  /* NOTIFICATION BADGE */
+  .notif-dot { position:relative; display:inline-block; }
+  .notif-dot::after { content:'1'; position:absolute; top:-6px; right:-6px; background:var(--danger); color:#fff; font-size:9px; font-weight:700; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg); }
+
+  /* CHALLENGE BADGE */
+  .next-badge { display:inline-flex; align-items:center; gap:5px; background: rgba(58,158,111,.12); border:1px solid rgba(58,158,111,.22); border-radius:99px; padding:3px 10px; font-size:11px; font-weight:600; color:var(--accent); margin-bottom:8px; }
+
+  /* FINANZAS: quiz */
+  .quiz-option { padding:13px 16px; background:rgba(255,255,255,.8); border:1px solid var(--border); border-radius:var(--r-sm); margin-bottom:8px; cursor:pointer; font-size:14px; transition:all .2s; }
+  .quiz-option:hover, .quiz-option.selected { background: rgba(58,158,111,.1); border-color:rgba(58,158,111,.35); color:var(--accent); }
+  .quiz-option.correct { background: rgba(43,176,122,.12); border-color:rgba(43,176,122,.3); color:#1e7a52; }
+  .quiz-option.wrong { background: rgba(224,92,106,.08); border-color:rgba(224,92,106,.25); color:var(--danger); }
+
+  /* RESPONSIVE */
+  @media (max-width: 420px) {
+    .phone { width: 100vw; height: 100dvh; border-radius: 0; box-shadow: none; }
+    body { align-items: flex-start; }
+  }
+
+  /* Ocultar statusbar y navbar mientras MeLi es la pantalla inicial */
+  .statusbar { display: none; }
+  .navbar { display: none; }
+
+  /* ===== MERCADO LIBRE SCREEN ===== */
+  .meli-header {
+    background: #fff200;
+    padding: 14px 16px 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .meli-logo { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; color: #1a1a1a; letter-spacing: -0.5px; }
+  .meli-search {
+    flex: 1; background: #fff; border: 1.5px solid #ddd; border-radius: 6px;
+    padding: 8px 12px; font-size: 13px; color: #333; display: flex; align-items: center; gap: 8px;
+  }
+  .meli-cart { font-size: 22px; flex-shrink: 0; }
+  .meli-breadcrumb { font-size: 11px; color: #1259c3; padding: 8px 16px; border-bottom: 1px solid #eee; background: #fff; }
+  .meli-product-img {
+    background: linear-gradient(135deg, #f0f0f0, #e8e8e8);
+    height: 200px; display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+  }
+  .meli-body { background: #fff; padding: 14px 16px; }
+  .meli-condition { font-size: 11px; color: #999; margin-bottom: 4px; }
+  .meli-title { font-size: 16px; color: #1a1a1a; line-height: 1.4; margin-bottom: 10px; font-weight: 400; }
+  .meli-price { font-size: 30px; color: #1a1a1a; font-weight: 300; letter-spacing: -1px; margin-bottom: 2px; }
+  .meli-installment { font-size: 13px; color: #00a650; margin-bottom: 12px; }
+  .meli-shipping { font-size: 13px; color: #00a650; font-weight: 600; margin-bottom: 16px; }
+  .meli-btn-buy {
+    width: 100%; padding: 14px; background: #3483fa; color: #fff;
+    border: none; border-radius: 6px; font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-bottom: 10px; font-family: 'DM Sans', sans-serif;
+    transition: background .15s;
+  }
+  .meli-btn-buy:active { background: #2968c8; }
+  .meli-btn-cart {
+    width: 100%; padding: 14px; background: #d8efff; color: #3483fa;
+    border: 1.5px solid #3483fa; border-radius: 6px; font-size: 15px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s;
+  }
+  .meli-seller { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid #eee; margin-top: 12px; }
+
+  /* overlay CSS moved below */
+
+  /* Push notification (top banner) — GRANDE */
+  .push-notif {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 600;
+    background: #1a2e23;
+    border-radius: 0 0 24px 24px;
+    padding: 52px 20px 20px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.55), 0 0 0 1.5px rgba(43,176,122,.4);
+    display: flex; flex-direction: column; gap: 14px;
+    transform: translateY(-110%);
+    transition: transform .5s cubic-bezier(.22,1.4,.36,1);
+    cursor: pointer;
+  }
+  .push-notif.visible { transform: translateY(0); animation: pushShake .5s ease .5s; }
+
+  /* Fila superior: foto + texto + chevron */
+  .push-top-row { display: flex; align-items: center; gap: 14px; }
+  .push-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), #1e7a52);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(43,176,122,.35);
+  }
+  .push-texts { flex: 1; }
+  .push-app { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 3px; }
+  .push-msg { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.35; }
+  .push-chevron { font-size: 14px; color: var(--accent3); font-weight: 700; flex-shrink: 0; }
+
+  /* Barra de impacto dentro del banner */
+  .push-impact-row {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .push-impact-left { display: flex; align-items: center; gap: 10px; }
+  .push-impact-label { font-size: 12px; color: rgba(255,255,255,.6); }
+  .push-impact-value { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; color: var(--danger); }
+
+  /* Botones dentro del banner */
+  .push-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .push-btn-main {
+    padding: 13px; background: var(--accent); color: #fff;
+    border: none; border-radius: 10px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 14px rgba(58,158,111,.5);
+    animation: ctaPulse 2s ease infinite;
+  }
+  .push-btn-sec {
+    padding: 13px; background: rgba(255,255,255,.1); color: #fff;
+    border: 1px solid rgba(255,255,255,.2); border-radius: 10px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+
+  @keyframes pushShake {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    20% { transform: translateY(0) rotate(-1deg); }
+    40% { transform: translateY(0) rotate(1deg); }
+    60% { transform: translateY(0) rotate(-.7deg); }
+    80% { transform: translateY(0) rotate(.5deg); }
+  }
+
+  @keyframes slideDown { from{transform:translateY(-120%)} to{transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="notch"></div>
+    <span>●●● 100%</span>
+  </div>
+
+  <div class="screens">
+
+    <!-- ============ SCREEN 0: DASHBOARD ============ -->
+    <div class="screen" id="screen-dashboard">
+      <div class="greeting-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="greeting-sub">Buenos días ☀️</div>
+            <div class="greeting-name">Hola, <span>Martina</span></div>
+          </div>
+          <div class="avatar" onclick="goTo('screen-perfil')" style="cursor:pointer;overflow:hidden;padding:0;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:cover;"></div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <!-- Saldo hero -->
+        <div class="money-hero" style="position:relative;overflow:hidden;">
+          <div class="glow-bg" style="width:160px;height:160px;background:var(--accent);top:-40px;left:50%;transform:translateX(-50%);"></div>
+          <div class="money-label">💰 Disponible este mes</div>
+          <div class="money-amount">$375.000</div>
+          <div style="margin-top:8px;font-size:12px;color:var(--accent);font-weight:600;">+$25.000 vs mes anterior ↑</div>
+        </div>
+
+        <!-- Meta principal -->
+        <div class="card accent-card" onclick="goTo('screen-metas')">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:26px;">✈️</span>
+            <div>
+              <div style="font-weight:700;font-size:15px;">Viaje a Europa</div>
+              <div style="font-size:12px;color:var(--text2);">253 días restantes</div>
+            </div>
+            <div class="pill purple" style="margin-left:auto;">60%</div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:60%"></div>
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px;">$450.000 de $750.000 guardados</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-label">Compras evitadas</div>
+            <div class="stat-value green">12</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🏅</div>
+            <div class="stat-label">Dinero protegido</div>
+            <div class="stat-value yellow">$80K</div>
+          </div>
+        </div>
+
+        <!-- Nivel -->
+        <div class="card yellow-card" onclick="goTo('screen-logros')">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:32px;">🏆</span>
+            <div>
+              <div class="pill yellow" style="margin-bottom:4px;">Nivel 3</div>
+              <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent2);">Guardiana de Objetivos</div>
+            </div>
+            <span style="margin-left:auto;color:var(--text2);font-size:20px;">›</span>
+          </div>
+        </div>
+
+        <!-- Alerta activa -->
+        <div class="alert-main" onclick="goTo('screen-alertas')">
+          <div class="alert-title">⚠️ Alerta pendiente</div>
+          <div style="font-weight:600;">Zapatillas Urban — $85.000</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px;">El tribunal ya opinó · Ver votos</div>
+        </div>
+
+        <!-- Botón reportar compra manual -->
+        <button class="btn btn-secondary" style="margin-bottom:8px;" onclick="goTo('screen-nueva-alerta')">🚨 Reportar una compra tentadora</button>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 1: METAS ============ -->
+    <div class="screen" id="screen-metas">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Mis Metas</div>
+        </div>
+        <button class="btn" style="width:auto;padding:8px 14px;background:var(--accent);color:#fff;border-radius:10px;font-size:13px;" onclick="goTo('screen-nueva-meta')">+ Nueva</button>
+      </div>
+
+      <!-- TABS -->
+      <div style="display:flex;gap:0;padding:0 20px;margin-top:8px;margin-bottom:0;">
+        <button id="tab-ahorro" onclick="switchMetasTab('ahorro')" style="flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid var(--accent);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--accent);cursor:pointer;transition:all .2s;">💰 Ahorro</button>
+        <button id="tab-inversion" onclick="switchMetasTab('inversion')" style="flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;">📈 Inversión</button>
+      </div>
+
+      <!-- TAB: AHORRO -->
+      <div id="metas-ahorro" class="scroll-content">
+        <!-- Meta 1 -->
+        <div class="card accent-card" onclick="goTo('screen-detalle-meta')" style="cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:28px;">✈️</span>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:15px;">Viaje a Europa</div>
+              <div style="font-size:11px;color:var(--text2);">Meta: $750.000 · Vence en 253 días</div>
+            </div>
+            <div class="pill purple">60%</div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:60%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:4px;">
+            <span>$450.000 guardados</span><span>Faltan $300.000</span>
+          </div>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--accent3);">
+            <span>✓</span><span>Generando rendimiento: +$2.340/mes con PF 30d</span>
+          </div>
+        </div>
+
+        <!-- Meta 2 -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:28px;">💻</span>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:15px;">PC Nueva</div>
+              <div style="font-size:11px;color:var(--text2);">Meta: $350.000 · Sin fecha límite</div>
+            </div>
+            <div class="pill purple">10%</div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:10%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:4px;">
+            <span>$35.000 guardados</span><span>Faltan $315.000</span>
+          </div>
+        </div>
+
+        <!-- Meta 3 -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:28px;">🧯</span>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:15px;">Fondo de Emergencia</div>
+              <div style="font-size:11px;color:var(--text2);">Meta: $200.000 · Sin fecha límite</div>
+            </div>
+            <div class="pill purple">20%</div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:20%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:4px;">
+            <span>$40.000 guardados</span><span>Faltan $160.000</span>
+          </div>
+        </div>
+
+        <!-- Meta 4 -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:28px;">☕</span>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:15px;">Cafetera Moka</div>
+              <div style="font-size:11px;color:var(--text2);">Meta: $18.000 · Sin fecha límite</div>
+            </div>
+            <div class="pill purple">5%</div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:5%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:4px;">
+            <span>$900 guardados</span><span>Faltan $17.100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: INVERSIÓN -->
+      <div id="metas-inversion" class="scroll-content" style="display:none;">
+
+        <!-- Hero total invertido -->
+        <div style="background:linear-gradient(135deg,#1a2e23,#2a4a35);border-radius:var(--r);padding:24px 20px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden;">
+          <div class="glow-bg" style="width:200px;height:200px;background:var(--accent3);top:-60px;left:50%;transform:translateX(-50%);opacity:.2;"></div>
+          <div style="font-size:11px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">TOTAL INVERTIDO</div>
+          <div style="font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:#fff;line-height:1;">$487.500</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;">En 2 instrumentos activos</div>
+          <div style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;background:rgba(43,176,122,.2);border:1px solid rgba(43,176,122,.3);border-radius:99px;padding:5px 14px;">
+            <span style="color:var(--accent3);font-size:13px;font-weight:700;">↑ +$14.820 este mes · TNA 36,5%</span>
+          </div>
+        </div>
+
+        <!-- Instrumento 1: Plazo Fijo -->
+        <div class="card" style="margin-bottom:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:22px;">✈️</span>
+              <div>
+                <div style="font-weight:700;font-size:14px;">Plazo Fijo — Viaje a Europa</div>
+                <div style="font-size:11px;color:var(--text2);">Banco Nación · Vence 3 Jul</div>
+              </div>
+            </div>
+            <div style="background:rgba(43,176,122,.12);border:1px solid rgba(43,176,122,.25);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;color:#1e7a52;">TNA 36%</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--text2);">Capital</span>
+              <span style="font-weight:600;">$450.000</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--text2);">Interés acumulado</span>
+              <span style="font-weight:600;color:var(--accent3);">+$13.500</span>
+            </div>
+            <div style="height:1px;background:var(--border);"></div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--text2);">Total al vencimiento</span>
+              <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);">$463.500</span>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px;">
+            <span>🔄</span><span>Vence en 3 días · renovación automática</span>
+          </div>
+        </div>
+
+        <!-- Instrumento 2: Fondo Común -->
+        <div class="card" style="margin-bottom:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:22px;">🧯</span>
+              <div>
+                <div style="font-weight:700;font-size:14px;">Fondo Común — Emergencia</div>
+                <div style="font-size:11px;color:var(--text2);">Mercado Pago · Retiro inmediato</div>
+              </div>
+            </div>
+            <div style="background:rgba(58,158,111,.12);border:1px solid rgba(58,158,111,.25);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--accent);">Activo</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--text2);">Capital</span>
+              <span style="font-weight:600;">$37.500</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:var(--text2);">Rendimiento</span>
+              <span style="font-weight:600;color:var(--accent3);">+$1.320 (TNA 37%)</span>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--accent3);display:flex;align-items:center;gap:5px;">
+            <span>⚡</span><span>Liquidez inmediata si necesitás</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="alert('Elegí un instrumento para invertir tus ahorros')">+ Invertir mis ahorros</button>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 2: LOGROS ============ -->
+    <div class="screen" id="screen-logros">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Logros</div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <!-- Mensaje positivo al lograr objetivo (R2-8) -->
+        <div style="background:linear-gradient(135deg,rgba(58,158,111,.12),rgba(43,176,122,.06));border:1px solid rgba(58,158,111,.22);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;text-align:center;">
+          <div style="font-size:28px;margin-bottom:6px;">🎉</div>
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--accent);">¡Lo estás haciendo increíble!</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px;">Llevas 12 días sin compras impulsivas. Tu yo del futuro te lo agradece.</div>
+        </div>
+
+        <!-- Level badge -->
+        <div class="level-badge">
+          <div style="font-size:36px;margin-bottom:6px;">🏆</div>
+          <div class="level-number">Nivel 3</div>
+          <div class="level-title">Guardiana de Objetivos</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:6px;">18 puntos · Próximo nivel en 7 pts</div>
+          <div class="progress-wrap progress-yellow" style="margin-top:10px;">
+            <div class="progress-fill" style="width:72%"></div>
+          </div>
+        </div>
+
+        <!-- Streak días sin compras (R1-19) -->
+        <div style="background:linear-gradient(135deg,rgba(240,165,0,.1),rgba(240,165,0,.04));border:1px solid rgba(240,165,0,.22);border-radius:var(--r);padding:16px;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:700;color:#b07800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🔥 Racha activa</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:#b07800;line-height:1;">12</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--text);">días sin compras impulsivas</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px;">Récord personal: 21 días 🏅</div>
+            </div>
+          </div>
+          <!-- Mini calendario estilo AA -->
+          <div style="display:flex;gap:5px;margin-top:12px;flex-wrap:wrap;">
+            <div style="font-size:9px;color:var(--text2);width:100%;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Últimos 14 días</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:rgba(224,92,106,.25);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--danger);">✗</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+            <div style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+          </div>
+        </div>
+
+        <!-- Medallas -->
+        <div class="section-label">🎖 Medallas obtenidas</div>
+        <div class="medal-row">
+          <div class="medal-icon">🥇</div>
+          <div class="medal-text">Evitaste 8 compras impulsivas</div>
+          <div class="pill green" style="margin-left:auto;">+3 pts</div>
+        </div>
+        <div class="medal-row">
+          <div class="medal-icon">🥇</div>
+          <div class="medal-text">Consultaste al Tribunal 5 veces</div>
+          <div class="pill green" style="margin-left:auto;">+3 pts</div>
+        </div>
+        <div class="medal-row">
+          <div class="medal-icon">🥇</div>
+          <div class="medal-text">30 días respetando tu presupuesto</div>
+          <div class="pill green" style="margin-left:auto;">+5 pts</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Próximo desafío con botón de acción (US·M01) -->
+        <div class="challenge-card">
+          <div class="next-badge">🎯 Próximo desafío</div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent);margin-bottom:6px;">Maestra del Ahorro</div>
+          <div style="font-size:13px;color:var(--text2);">Evitar 12 compras impulsivas para desbloquear</div>
+          <div class="progress-wrap" style="margin-top:10px;">
+            <div class="progress-fill" style="width:67%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+            <div style="font-size:12px;color:var(--text2);">8 de 12 logradas · Faltan 4</div>
+            <button onclick="goTo('screen-historial')" style="background:none;border:none;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;padding:0;">Ver historial →</button>
+          </div>
+        </div>
+
+        <!-- Stats resumen -->
+        <div class="section-label">📊 Resumen</div>
+        <div class="card green-card">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent3);">$80.000</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px;">Dinero protegido gracias a tus decisiones 💪</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 3: ESTADÍSTICAS ============ -->
+    <div class="screen" id="screen-estadisticas">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Estadísticas</div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <div class="section-label">Tus logros en números</div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-label">Compras evitadas</div>
+            <div class="stat-value red">12</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Dinero protegido</div>
+            <div class="stat-value yellow">$80K</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚖️</div>
+            <div class="stat-label">Consultas al Tribunal</div>
+            <div class="stat-value purple">18</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-label">Metas activas</div>
+            <div class="stat-value red">4</div>
+          </div>
+        </div>
+
+        <!-- Compras por mes -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="font-weight:600;margin-bottom:16px;font-size:14px;">Compras por mes</div>
+          <div style="display:flex;align-items:flex-end;gap:8px;height:80px;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:rgba(58,158,111,.5);border-radius:4px 4px 0 0;height:60%;"></div>
+              <div style="font-size:9px;color:var(--text2);">MAR</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:rgba(58,158,111,.5);border-radius:4px 4px 0 0;height:80%;"></div>
+              <div style="font-size:9px;color:var(--text2);">ABR</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:rgba(43,176,122,.75);border-radius:4px 4px 0 0;height:40%;"></div>
+              <div style="font-size:9px;color:var(--accent3);">MAY</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;background:rgba(43,176,122,.9);border-radius:4px 4px 0 0;height:25%;"></div>
+              <div style="font-size:9px;color:var(--accent3);">JUN</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--accent3);margin-top:10px;">📉 Tendencia positiva: -37% vs trimestre anterior</div>
+        </div>
+
+        <!-- Distribución de ahorros -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="font-weight:600;margin-bottom:12px;font-size:14px;">Distribución de ahorros</div>
+          <div style="display:flex;gap:0;border-radius:8px;overflow:hidden;height:14px;margin-bottom:12px;">
+            <div style="flex:60;background:var(--accent);"></div>
+            <div style="flex:20;background:var(--accent3);"></div>
+            <div style="flex:10;background:var(--accent2);"></div>
+            <div style="flex:10;background:var(--danger);"></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);">
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--accent);flex-shrink:0;"></div>Europa 60%
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);">
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--accent3);flex-shrink:0;"></div>PC 20%
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);">
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--accent2);flex-shrink:0;"></div>Emergencia 10%
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);">
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--danger);flex-shrink:0;"></div>Moka 10%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 4: PERFIL ============ -->
+    <div class="screen" id="screen-perfil">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Perfil</div>
+        </div>
+        <button class="btn" style="width:auto;padding:8px 14px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:13px;" onclick="goTo('screen-config')">⚙️ Config</button>
+      </div>
+
+      <div class="scroll-content">
+        <!-- Avatar centrado + nombre + badge -->
+        <div style="text-align:center;padding:8px 0 20px;">
+          <div class="avatar" style="width:72px;height:72px;font-size:32px;margin:0 auto 12px;overflow:hidden;padding:0;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:cover;"></div>
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);">Martina García</div>
+          <div class="pill yellow" style="margin-top:8px;display:inline-flex;">🏆 Nivel 3 · Guardiana de Objetivos</div>
+        </div>
+
+        <!-- Objetivo principal -->
+        <div class="card accent-card" style="margin-bottom:14px;">
+          <div class="section-label" style="margin-bottom:8px;">🎯 OBJETIVO PRINCIPAL</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span style="font-size:22px;">✈️</span>
+            <div>
+              <div style="font-weight:700;font-size:14px;">Viaje a Europa</div>
+              <div style="font-size:12px;color:var(--text2);">Restan 253 días</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:60%"></div>
+          </div>
+        </div>
+
+        <!-- Stats grid -->
+        <div class="stat-grid" style="margin-bottom:14px;">
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Dinero protegido</div>
+            <div class="stat-value yellow" style="font-size:18px;">$80.000</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-label">Compras evitadas</div>
+            <div class="stat-value green">12</div>
+          </div>
+        </div>
+
+        <!-- Amigos conectados -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">👥 Amigos conectados</div>
+              <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--text);">8</div>
+            </div>
+            <button class="btn btn-primary" style="width:auto;padding:10px 18px;font-size:13px;" onclick="goTo('screen-tribunal')">Ver tribunal</button>
+          </div>
+        </div>
+
+        <!-- Cuentas vinculadas -->
+        <div class="section-label">🏦 Cuentas vinculadas</div>
+        <div class="account-row">
+          <div class="account-info"><span class="account-icon">🏛️</span><span class="account-name">Banco Nación</span></div>
+          <div class="pill green">✓ Vinculado</div>
+        </div>
+        <div class="account-row">
+          <div class="account-info"><span class="account-icon">💳</span><span class="account-name">Mercado Pago</span></div>
+          <div class="pill green">✓ Vinculado</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 5: ALERTAS ============ -->
+    <div class="screen" id="screen-alertas">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Alertas</div>
+        </div>
+        <div class="pill red">1 nueva</div>
+      </div>
+
+      <div class="scroll-content">
+
+        <!-- Frase motivacional personalizada (R1-1 / R1-10) -->
+        <div style="background:linear-gradient(135deg,rgba(58,158,111,.1),rgba(43,176,122,.05));border:1px solid rgba(58,158,111,.2);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">🌿</span>
+          <div>
+            <div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:2px;">Tu frase del día</div>
+            <div style="font-size:13px;color:var(--text);font-style:italic;line-height:1.45;">"Cada peso que guardás hoy es un día más cerca de Europa ✈️"</div>
+          </div>
+        </div>
+
+        <!-- Alerta principal -->
+        <div class="alert-main">
+          <div class="alert-title">🚨 Posible compra detectada</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Origen: Mercado Libre</div>
+          <div style="font-weight:700;font-size:16px;margin-bottom:10px;">Zapatillas Urban — $85.000</div>
+
+          <!-- Impacto visual en meta (R2-11) -->
+          <div style="background:rgba(224,92,106,.08);border:1px solid rgba(224,92,106,.18);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:10px;">
+            <div style="font-size:11px;color:var(--danger);font-weight:700;margin-bottom:6px;">📉 Impacto en tu meta principal</div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px;">
+              <span>Viaje a Europa</span>
+              <span style="color:var(--danger);font-weight:600;">–6% si comprás</span>
+            </div>
+            <div style="background:rgba(58,158,111,.15);border-radius:99px;height:7px;overflow:hidden;margin-bottom:4px;">
+              <div style="width:60%;height:100%;background:linear-gradient(90deg,var(--accent),#6ecfa0);border-radius:99px;position:relative;">
+                <div style="position:absolute;right:0;top:50%;transform:translate(50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 6px var(--accent);"></div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);">
+              <span>Actual: 60%</span><span style="color:var(--danger);">Si comprás: 54%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cooldown (R1-4) -->
+        <div id="cooldown-wrap" style="margin-bottom:14px;">
+          <div style="background:rgba(247,201,72,.1);border:1px solid rgba(240,165,0,.25);border-radius:var(--r);padding:14px 16px;">
+            <div style="font-size:12px;font-weight:700;color:#b07800;margin-bottom:8px;">⏳ Modo convencerme activado</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Esperá 24 hs antes de decidir. El 80% de las veces ya no lo vas a querer.</div>
+            <div id="cooldown-timer" style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#b07800;text-align:center;letter-spacing:2px;margin-bottom:10px;">23:59:47</div>
+            <button class="btn" style="background:rgba(224,92,106,.12);border:1px solid rgba(224,92,106,.25);color:var(--danger);padding:10px;font-size:13px;" onclick="cancelCooldown()">Cancelar espera y decidir ahora</button>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div id="action-btns" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <button class="btn btn-primary" onclick="goTo('screen-tribunal')">👥 Consultar tribunal</button>
+          <button class="btn btn-secondary" onclick="goTo('screen-consejos')">💡 Ver consejo</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <button class="btn btn-primary" onclick="goTo('screen-tribunal')">👥 Consultar tribunal</button>
+          <button class="btn btn-secondary" onclick="goTo('screen-consejos')">💡 Ver consejo</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Alertas pasadas -->
+        <div class="section-label">Historial de alertas</div>
+        <div class="hist-row">
+          <div>
+            <div class="hist-name">Auriculares JBL</div>
+            <div style="font-size:11px;color:var(--text2);">hace 3 días</div>
+          </div>
+          <div class="hist-status evitado">✓ Evitado</div>
+        </div>
+        <div class="hist-row">
+          <div>
+            <div class="hist-name">Shampoo Kérastase</div>
+            <div style="font-size:11px;color:var(--text2);">hace 5 días</div>
+          </div>
+          <div class="hist-status evitado">✓ Evitado</div>
+        </div>
+        <div class="hist-row">
+          <div>
+            <div class="hist-name">Smartwatch</div>
+            <div style="font-size:11px;color:var(--text2);">hace 8 días</div>
+          </div>
+          <div class="hist-status comprado">✗ Comprado</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 6: TRIBUNAL ============ -->
+    <div class="screen" id="screen-tribunal">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Tribunal</div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <!-- Compra en debate -->
+        <div class="card red-card" style="margin-bottom:14px;">
+          <div style="font-size:11px;color:var(--danger);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">⚠️ En debate</div>
+          <div style="font-weight:700;font-size:16px;">Zapatillas Urban — $85.000</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:4px;">Impacto: -6% de tu objetivo Viaje a Europa</div>
+        </div>
+
+        <!-- Votos amigos -->
+        <div class="section-label">Opiniones del tribunal</div>
+
+        <div class="friend-row">
+          <div class="friend-avatar" style="background:rgba(58,158,111,.15);color:var(--accent);">L</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:13px;">Lucía</div>
+            <div class="friend-comment">Yo esperaría unos días</div>
+          </div>
+          <div class="friend-vote">👎</div>
+        </div>
+        <div class="friend-row">
+          <div class="friend-avatar" style="background:rgba(43,176,122,.15);color:#1e7a52;">D</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:13px;">Diego</div>
+            <div class="friend-comment">¿Realmente las necesitas?</div>
+          </div>
+          <div class="friend-vote">👎</div>
+        </div>
+        <div class="friend-row">
+          <div class="friend-avatar" style="background:rgba(240,165,0,.13);color:#b07800;">S</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:13px;">Sofía</div>
+            <div class="friend-comment">Si las vas a usar mucho, sí</div>
+          </div>
+          <div class="friend-vote">👍</div>
+        </div>
+        <div class="friend-row">
+          <div class="friend-avatar" style="background:rgba(224,92,106,.1);color:var(--danger);">M</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:13px;">Mia</div>
+            <div class="friend-comment">Tenés 5 pares de zapatillas</div>
+          </div>
+          <div class="friend-vote">👎</div>
+        </div>
+
+        <!-- Resultado -->
+        <div class="vote-row">
+          <div class="vote-box favor">
+            <div class="vote-number" style="color:var(--accent3);">1</div>
+            <div class="vote-label" style="color:var(--accent3);">A favor</div>
+          </div>
+          <div class="vote-box contra">
+            <div class="vote-number" style="color:var(--danger);">3</div>
+            <div class="vote-label" style="color:var(--danger);">En contra</div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button class="btn btn-danger" onclick="alert('Registrando compra...')">Comprar igual</button>
+          <button class="btn btn-green" onclick="alert('¡Compra evitada! +1 medalla 🏅')">Evitar ✓</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 7: HISTORIAL ============ -->
+    <div class="screen" id="screen-historial">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Historial</div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <div class="section-label">Reciente</div>
+
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">🎧</span>
+            <div><div class="hist-name">Auriculares</div><div style="font-size:11px;color:var(--text2);">hace 3 días</div></div>
+          </div>
+          <div class="hist-status evitado">✓ Evitado</div>
+        </div>
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">⌚</span>
+            <div><div class="hist-name">Smartwatch</div><div style="font-size:11px;color:var(--text2);">hace 6 días</div></div>
+          </div>
+          <div class="hist-status comprado">✗ Comprado</div>
+        </div>
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">🍔</span>
+            <div><div class="hist-name">McDonald's</div><div style="font-size:11px;color:var(--text2);">hace 7 días</div></div>
+          </div>
+          <div class="hist-status evitado">✓ Evitado</div>
+        </div>
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">🧴</span>
+            <div><div class="hist-name">Shampoo Kérastase</div><div style="font-size:11px;color:var(--text2);">hace 8 días</div></div>
+          </div>
+          <div class="hist-status evitado">✓ Evitado</div>
+        </div>
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">💄</span>
+            <div><div class="hist-name">Maybelline Stick Facial</div><div style="font-size:11px;color:var(--text2);">hace 10 días</div></div>
+          </div>
+          <div class="hist-status evitado">✓ Evitado</div>
+        </div>
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">💍</span>
+            <div><div class="hist-name">Isadora anillo</div><div style="font-size:11px;color:var(--text2);">hace 12 días</div></div>
+          </div>
+          <div class="hist-status comprado">✗ Comprado</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="card green-card" style="text-align:center;">
+          <div style="font-size:13px;color:var(--text2);">Este mes</div>
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent3);margin:4px 0;">83% evitadas</div>
+          <div style="font-size:12px;color:var(--text2);">5 de 6 compras impulsivas evitadas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 8: CONSEJOS FINANCIEROS ============ -->
+    <div class="screen" id="screen-consejos">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Consejos</div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <!-- Mini desafío financiero -->
+        <div class="card accent-card" style="margin-bottom:14px;">
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;">💡 Mini desafío financiero</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Antes de comprar, preguntate:</div>
+
+          <div id="quiz-container">
+            <div class="quiz-option" onclick="selectOption(this,'no')">¿Lo necesito realmente?</div>
+            <div class="quiz-option selected" onclick="selectOption(this,'yes')" style="background:rgba(58,158,111,.1);border-color:rgba(58,158,111,.35);color:var(--accent);">¿Lo voy a usar con frecuencia?</div>
+            <div class="quiz-option" onclick="selectOption(this,'no')">¿Puedo esperar una semana?</div>
+          </div>
+
+          <!-- Resultado visible por defecto como en el diseño -->
+          <div id="quiz-result" style="margin-top:14px;padding:12px 14px;border-radius:var(--r-sm);border:1px solid rgba(43,176,122,.25);background:rgba(43,176,122,.08);display:block;">
+            <div style="color:var(--accent3);font-weight:700;font-size:14px;">✅ Resultado: Reconsiderá la compra</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px;">Respondiste "no" a 2 o más preguntas. Esperá 24 horas antes de decidir.</div>
+          </div>
+        </div>
+
+        <!-- Regla de las 24 horas -->
+        <div class="section-label">Regla de las 24 horas</div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="consejo-step">
+            <div class="step-num">1</div>
+            <div class="step-text">Detectás una compra impulsiva (la app te avisa)</div>
+          </div>
+          <div class="consejo-step">
+            <div class="step-num">2</div>
+            <div class="step-text">Esperar 24 horas antes de decidir</div>
+          </div>
+          <div class="consejo-step" style="margin-bottom:0;">
+            <div class="step-num">3</div>
+            <div class="step-text">El 80% de las veces ya no querés comprarlo</div>
+          </div>
+        </div>
+
+        <!-- Regla del 10% -->
+        <div class="section-label">Regla del 10%</div>
+        <div class="card">
+          <div style="font-size:14px;color:var(--text2);line-height:1.6;">
+            Si el precio supera el <strong style="color:var(--text);">10% de tu ingreso mensual</strong>, consultá siempre al Tribunal antes de comprar.
+          </div>
+          <div style="margin-top:10px;padding:10px 14px;background:rgba(58,158,111,.08);border:1px solid rgba(58,158,111,.2);border-radius:var(--r-sm);">
+            <div style="font-size:13px;color:var(--accent);">Para vos: cualquier compra mayor a <strong>$37.500</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN: ONBOARDING 1 ============ -->
+    <div class="screen" id="screen-onboarding1">
+      <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;text-align:center;position:relative;overflow:hidden;">
+        <div class="glow-bg" style="width:300px;height:300px;background:var(--accent);top:-60px;left:50%;transform:translateX(-50%);"></div>
+        <div style="font-size:72px;margin-bottom:24px;position:relative;">🌿</div>
+        <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--text);margin-bottom:12px;line-height:1.1;position:relative;">Bienvenida<br><span style="color:var(--accent);">a Martina</span></div>
+        <div style="font-size:15px;color:var(--text2);line-height:1.6;margin-bottom:36px;position:relative;">Tu compañera financiera para alcanzar tus sueños sin renunciar a lo que amás.</div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;width:100%;position:relative;">
+          <button class="btn btn-primary" onclick="goTo('screen-onboarding2')">Empezar →</button>
+          <button class="btn btn-secondary" onclick="goTo('screen-dashboard')">Ya tengo cuenta</button>
+        </div>
+
+        <!-- Dots indicadores -->
+        <div style="display:flex;gap:8px;margin-top:32px;">
+          <div style="width:24px;height:6px;border-radius:3px;background:var(--accent);"></div>
+          <div style="width:6px;height:6px;border-radius:3px;background:var(--border);"></div>
+          <div style="width:6px;height:6px;border-radius:3px;background:var(--border);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN: ONBOARDING 2 ============ -->
+    <div class="screen" id="screen-onboarding2">
+      <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;text-align:center;position:relative;overflow:hidden;">
+        <div class="glow-bg" style="width:260px;height:260px;background:var(--accent2);top:-40px;right:-60px;"></div>
+        <div style="font-size:68px;margin-bottom:24px;position:relative;">🎯</div>
+        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--text);margin-bottom:12px;line-height:1.1;position:relative;">Tus metas,<br><span style="color:var(--accent);">tu ritmo</span></div>
+        <div style="font-size:15px;color:var(--text2);line-height:1.6;margin-bottom:28px;position:relative;">Definí qué querés lograr y Martina te ayuda a llegar sin perder el rumbo en el camino.</div>
+
+        <!-- Features list -->
+        <div style="width:100%;position:relative;margin-bottom:32px;">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.7);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;">
+            <span style="font-size:22px;">🔔</span>
+            <div style="text-align:left;">
+              <div style="font-size:13px;font-weight:600;">Alertas inteligentes</div>
+              <div style="font-size:11px;color:var(--text2);">Te avisa antes de que gastes de más</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.7);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;">
+            <span style="font-size:22px;">👥</span>
+            <div style="text-align:left;">
+              <div style="font-size:13px;font-weight:600;">Tribunal de amigos</div>
+              <div style="font-size:11px;color:var(--text2);">Tu red te ayuda a decidir mejor</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.7);border:1px solid var(--border);border-radius:var(--r-sm);">
+            <span style="font-size:22px;">🏅</span>
+            <div style="text-align:left;">
+              <div style="font-size:13px;font-weight:600;">Logros y recompensas</div>
+              <div style="font-size:11px;color:var(--text2);">Cada buena decisión suma puntos</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;position:relative;" onclick="goTo('screen-onboarding3')">Siguiente →</button>
+
+        <div style="display:flex;gap:8px;margin-top:24px;">
+          <div style="width:6px;height:6px;border-radius:3px;background:var(--border);"></div>
+          <div style="width:24px;height:6px;border-radius:3px;background:var(--accent);"></div>
+          <div style="width:6px;height:6px;border-radius:3px;background:var(--border);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN: ONBOARDING 3 — Meta inicial ============ -->
+    <div class="screen" id="screen-onboarding3">
+      <div style="padding:58px 28px 32px;height:100%;overflow-y:auto;">
+        <div style="margin-bottom:28px;">
+          <div style="font-size:38px;margin-bottom:10px;">✨</div>
+          <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--text);margin-bottom:8px;">¿Cuál es tu<br><span style="color:var(--accent);">primer sueño?</span></div>
+          <div style="font-size:14px;color:var(--text2);">Elegí o escribí lo que querés lograr primero</div>
+        </div>
+
+        <!-- Opciones rápidas -->
+        <div id="ob-options" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+          <div class="ob-opt" onclick="selectOnboardingGoal(this,'✈️','Viaje')" style="padding:16px 12px;background:rgba(255,255,255,.8);border:2px solid var(--border);border-radius:var(--r);text-align:center;cursor:pointer;transition:all .2s;">
+            <div style="font-size:28px;margin-bottom:6px;">✈️</div>
+            <div style="font-size:13px;font-weight:600;">Viaje</div>
+          </div>
+          <div class="ob-opt" onclick="selectOnboardingGoal(this,'💻','PC / Electrónica')" style="padding:16px 12px;background:rgba(255,255,255,.8);border:2px solid var(--border);border-radius:var(--r);text-align:center;cursor:pointer;transition:all .2s;">
+            <div style="font-size:28px;margin-bottom:6px;">💻</div>
+            <div style="font-size:13px;font-weight:600;">PC / Electrónica</div>
+          </div>
+          <div class="ob-opt" onclick="selectOnboardingGoal(this,'🏠','Casa / Depto')" style="padding:16px 12px;background:rgba(255,255,255,.8);border:2px solid var(--border);border-radius:var(--r);text-align:center;cursor:pointer;transition:all .2s;">
+            <div style="font-size:28px;margin-bottom:6px;">🏠</div>
+            <div style="font-size:13px;font-weight:600;">Casa / Depto</div>
+          </div>
+          <div class="ob-opt" onclick="selectOnboardingGoal(this,'🎓','Educación')" style="padding:16px 12px;background:rgba(255,255,255,.8);border:2px solid var(--border);border-radius:var(--r);text-align:center;cursor:pointer;transition:all .2s;">
+            <div style="font-size:28px;margin-bottom:6px;">🎓</div>
+            <div style="font-size:13px;font-weight:600;">Educación</div>
+          </div>
+          <div class="ob-opt" onclick="selectOnboardingGoal(this,'🧯','Emergencia')" style="padding:16px 12px;background:rgba(255,255,255,.8);border:2px solid var(--border);border-radius:var(--r);text-align:center;cursor:pointer;transition:all .2s;">
+            <div style="font-size:28px;margin-bottom:6px;">🧯</div>
+            <div style="font-size:13px;font-weight:600;">Fondo emergencia</div>
+          </div>
+          <div class="ob-opt" onclick="selectOnboardingGoal(this,'⭐','Otro')" style="padding:16px 12px;background:rgba(255,255,255,.8);border:2px solid var(--border);border-radius:var(--r);text-align:center;cursor:pointer;transition:all .2s;">
+            <div style="font-size:28px;margin-bottom:6px;">✏️</div>
+            <div style="font-size:13px;font-weight:600;">Personalizar</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:24px;">
+          <div style="width:6px;height:6px;border-radius:3px;background:var(--border);"></div>
+          <div style="width:6px;height:6px;border-radius:3px;background:var(--border);"></div>
+          <div style="width:24px;height:6px;border-radius:3px;background:var(--accent);"></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="goTo('screen-dashboard')">Empezar con Martina 🌿</button>
+        <button class="btn btn-secondary" style="margin-top:10px;" onclick="goTo('screen-dashboard')">Omitir por ahora</button>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN: NUEVA META ============ -->
+    <div class="screen" id="screen-nueva-meta">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Nueva Meta</div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <!-- Emoji selector -->
+        <div style="text-align:center;margin-bottom:20px;">
+          <div id="new-meta-emoji" style="font-size:52px;margin-bottom:8px;cursor:pointer;" onclick="toggleEmojiPicker()">✈️</div>
+          <div style="font-size:12px;color:var(--text2);">Tocá el ícono para cambiarlo</div>
+        </div>
+
+        <!-- Emoji picker -->
+        <div id="emoji-picker" style="display:none;background:rgba(255,255,255,.95);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('✈️')">✈️</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('🏠')">🏠</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('💻')">💻</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('🎓')">🎓</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('🚗')">🚗</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('🧯')">🧯</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('☕')">☕</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('🎸')">🎸</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('🐕')">🐕</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('💍')">💍</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('🏋️')">🏋️</span>
+            <span style="font-size:28px;cursor:pointer;" onclick="setEmoji('📚')">📚</span>
+          </div>
+        </div>
+
+        <!-- Nombre de la meta -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Nombre de la meta</div>
+          <input id="meta-nombre" type="text" placeholder="Ej: Viaje a Europa, PC nueva..." style="width:100%;padding:14px 16px;background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;">
+        </div>
+
+        <!-- Monto objetivo -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Monto objetivo ($)</div>
+          <input id="meta-monto" type="number" placeholder="Ej: 750000" style="width:100%;padding:14px 16px;background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;">
+        </div>
+
+        <!-- Fecha límite -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Fecha límite (opcional)</div>
+          <input id="meta-fecha" type="date" style="width:100%;padding:14px 16px;background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;">
+        </div>
+
+        <!-- Preview -->
+        <div id="meta-preview" style="display:none;margin-bottom:20px;" class="card accent-card">
+          <div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:8px;">Vista previa</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span id="preview-emoji" style="font-size:26px;">✈️</span>
+            <div>
+              <div id="preview-nombre" style="font-weight:700;font-size:15px;">Mi meta</div>
+              <div id="preview-info" style="font-size:11px;color:var(--text2);">Meta: —</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="crearMeta()">Crear meta 🎯</button>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN: DETALLE META ============ -->
+    <div class="screen" id="screen-detalle-meta">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Detalle de Meta</div>
+        </div>
+        <button class="btn" style="width:auto;padding:8px 14px;background:rgba(224,92,106,.1);border:1px solid rgba(224,92,106,.25);color:var(--danger);border-radius:10px;font-size:13px;" onclick="alert('Editar meta')">✏️ Editar</button>
+      </div>
+
+      <div class="scroll-content">
+        <!-- Hero meta -->
+        <div style="background:linear-gradient(135deg,rgba(58,158,111,.15),rgba(43,176,122,.06));border:1px solid rgba(58,158,111,.25);border-radius:var(--r);padding:24px 20px;margin-bottom:16px;text-align:center;">
+          <div style="font-size:52px;margin-bottom:8px;">✈️</div>
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text);">Viaje a Europa</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:4px;">Vence en 253 días</div>
+          <div style="margin-top:16px;">
+            <div class="progress-wrap">
+              <div class="progress-fill" style="width:60%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:6px;">
+              <span>$450.000 guardados</span><span style="color:var(--accent);font-weight:700;">60%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats detalladas -->
+        <div class="stat-grid" style="margin-bottom:16px;">
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-label">Meta total</div>
+            <div class="stat-value purple" style="font-size:17px;">$750K</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Falta guardar</div>
+            <div class="stat-value red" style="font-size:17px;">$300K</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-label">Por mes</div>
+            <div class="stat-value green" style="font-size:17px;">$35K</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-label">Ritmo actual</div>
+            <div class="stat-value yellow" style="font-size:17px;">+$29K/mes</div>
+          </div>
+        </div>
+
+        <!-- Alerta de ritmo -->
+        <div class="card yellow-card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;">⚡</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#b07800;">Tu ritmo está un poco lento</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px;">Necesitás ahorrar $6.000 más por mes para llegar a tiempo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Historial de aportes -->
+        <div class="section-label">Últimos aportes</div>
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">💚</span>
+            <div><div class="hist-name">Aporte manual</div><div style="font-size:11px;color:var(--text2);">hace 3 días</div></div>
+          </div>
+          <div style="color:var(--accent3);font-weight:700;font-size:14px;">+$15.000</div>
+        </div>
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🏦</span>
+            <div><div class="hist-name">Transferencia automática</div><div style="font-size:11px;color:var(--text2);">hace 7 días</div></div>
+          </div>
+          <div style="color:var(--accent3);font-weight:700;font-size:14px;">+$30.000</div>
+        </div>
+        <div class="hist-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🚫</span>
+            <div><div class="hist-name">Compra evitada recuperada</div><div style="font-size:11px;color:var(--text2);">hace 10 días</div></div>
+          </div>
+          <div style="color:var(--accent3);font-weight:700;font-size:14px;">+$85.000</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Acción principal -->
+        <button class="btn btn-primary" style="margin-bottom:10px;" onclick="alert('¿Cuánto querés agregar a esta meta?')">+ Agregar ahorro</button>
+        <button class="btn btn-secondary" onclick="goTo('screen-metas')">Ver todas mis metas</button>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN: NUEVA ALERTA MANUAL ============ -->
+    <div class="screen" id="screen-nueva-alerta">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Reportar Compra</div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <div style="background:linear-gradient(135deg,rgba(224,92,106,.08),rgba(224,92,106,.03));border:1px solid rgba(224,92,106,.2);border-radius:var(--r);padding:16px;margin-bottom:20px;">
+          <div style="font-size:13px;color:var(--danger);font-weight:700;margin-bottom:4px;">🚨 ¿Estás tentada de comprar algo?</div>
+          <div style="font-size:12px;color:var(--text2);">Cargalo acá y consultá al Tribunal antes de gastar</div>
+        </div>
+
+        <!-- Nombre del producto -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">¿Qué querés comprar?</div>
+          <input id="alerta-nombre" type="text" placeholder="Ej: Zapatillas Urban, Cartera..." style="width:100%;padding:14px 16px;background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;">
+        </div>
+
+        <!-- Precio -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Precio ($)</div>
+          <input id="alerta-precio" type="number" placeholder="Ej: 85000" oninput="calcImpacto()" style="width:100%;padding:14px 16px;background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;">
+        </div>
+
+        <!-- Tienda / origen -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">¿Dónde?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div onclick="selectTienda(this,'MeLi')" style="padding:8px 14px;background:rgba(255,255,255,.8);border:1px solid var(--border);border-radius:99px;font-size:13px;cursor:pointer;transition:all .2s;">🛒 Mercado Libre</div>
+            <div onclick="selectTienda(this,'Rappi')" style="padding:8px 14px;background:rgba(255,255,255,.8);border:1px solid var(--border);border-radius:99px;font-size:13px;cursor:pointer;transition:all .2s;">🛵 Rappi</div>
+            <div onclick="selectTienda(this,'Tienda')" style="padding:8px 14px;background:rgba(255,255,255,.8);border:1px solid var(--border);border-radius:99px;font-size:13px;cursor:pointer;transition:all .2s;">🏪 Tienda física</div>
+            <div onclick="selectTienda(this,'Otro')" style="padding:8px 14px;background:rgba(255,255,255,.8);border:1px solid var(--border);border-radius:99px;font-size:13px;cursor:pointer;transition:all .2s;">✏️ Otro</div>
+          </div>
+        </div>
+
+        <!-- Impacto calculado -->
+        <div id="impacto-box" style="display:none;margin-bottom:20px;" class="card red-card">
+          <div style="font-size:11px;color:var(--danger);font-weight:700;margin-bottom:8px;">📉 Impacto en tu meta principal</div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;">
+            <span>Viaje a Europa</span>
+            <span id="impacto-pct" style="color:var(--danger);font-weight:700;">–0%</span>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:60%"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px;">Actual: 60% → <span id="impacto-nuevo">54%</span> si comprás</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button class="btn btn-secondary" onclick="goTo('screen-tribunal')">👥 Consultar tribunal</button>
+          <button class="btn btn-primary" onclick="enviarAlerta()">Activar alerta 🔔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 9: CONFIGURACIÓN ============ -->
+    <div class="screen" id="screen-config">
+      <div class="screen-header">
+        <div style="display:flex;align-items:center;">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="screen-title">Configuración</div>
+        </div>
+      </div>
+
+      <div class="scroll-content">
+        <!-- Perfil -->
+        <div class="section-label">Perfil</div>
+        <div class="setting-row" onclick="alert('Editar perfil')">
+          <span class="setting-icon">👤</span>
+          <span class="setting-text">Editar perfil</span>
+          <span style="margin-left:auto;color:var(--text2);font-size:18px;">›</span>
+        </div>
+        <div class="setting-row" onclick="alert('Cambiar foto')">
+          <span class="setting-icon">📷</span>
+          <span class="setting-text">Cambiar foto</span>
+          <span style="margin-left:auto;color:var(--text2);font-size:18px;">›</span>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Objetivos</div>
+        <div class="setting-row" onclick="alert('Cambiar meta principal')">
+          <span class="setting-icon">🎯</span>
+          <span class="setting-text">Cambiar meta principal</span>
+          <span style="margin-left:auto;color:var(--text2);font-size:18px;">›</span>
+        </div>
+        <div class="setting-row" onclick="alert('Presupuesto mensual: $375.000')">
+          <span class="setting-icon">💵</span>
+          <span class="setting-text">Definir presupuesto mensual</span>
+          <div class="pill purple" style="margin-left:auto;">$375K</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Comunidad</div>
+        <div class="setting-row" onclick="goTo('screen-tribunal')">
+          <span class="setting-icon">👥</span>
+          <span class="setting-text">Administrar Tribunal de amigos</span>
+          <div class="pill green" style="margin-left:auto;">8 amigos</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Cuentas vinculadas</div>
+        <div class="account-row">
+          <div class="account-info"><span class="account-icon">🏛️</span><span class="account-name">Banco Nación</span></div>
+          <div class="pill green">✓</div>
+        </div>
+        <div class="account-row">
+          <div class="account-info"><span class="account-icon">💳</span><span class="account-name">Mercado Pago</span></div>
+          <div class="pill green">✓</div>
+        </div>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="alert('Agregar cuenta')">+ Vincular nueva cuenta</button>
+
+        <div class="divider"></div>
+        <div class="section-label">Notificaciones</div>
+
+        <!-- Toggle principal -->
+        <div class="setting-row">
+          <span class="setting-icon">🔔</span>
+          <span class="setting-text">Notificaciones push</span>
+          <div style="margin-left:auto;">
+            <div id="toggle1" onclick="toggleSwitch('toggle1')" style="width:44px;height:24px;background:var(--accent);border-radius:12px;cursor:pointer;position:relative;transition:background .2s;">
+              <div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:all .2s;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel expandido de alertas (US·N01) -->
+        <div style="background:rgba(58,158,111,.05);border:1px solid rgba(58,158,111,.15);border-radius:var(--r);padding:14px;margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Tipos de alerta</div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:13px;font-weight:600;">🚨 Compra impulsiva detectada</div>
+              <div style="font-size:11px;color:var(--text2);">Alerta inmediata al detectar una compra</div>
+            </div>
+            <div id="toggle-compra" onclick="toggleSwitch('toggle-compra')" style="width:36px;height:20px;background:var(--accent);border-radius:10px;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;">
+              <div style="width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:all .2s;"></div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:13px;font-weight:600;">💰 Saldo disponible</div>
+              <div style="font-size:11px;color:var(--text2);">Notificación semanal del dinero restante</div>
+            </div>
+            <div id="toggle-saldo" onclick="toggleSwitch('toggle-saldo')" style="width:36px;height:20px;background:var(--accent);border-radius:10px;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;">
+              <div style="width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:all .2s;"></div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:13px;font-weight:600;">🏅 Logros y medallas</div>
+              <div style="font-size:11px;color:var(--text2);">Celebración al desbloquear un logro</div>
+            </div>
+            <div id="toggle-logros" onclick="toggleSwitch('toggle-logros')" style="width:36px;height:20px;background:var(--accent);border-radius:10px;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;">
+              <div style="width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:all .2s;"></div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:13px;font-weight:600;">👥 Opiniones del Tribunal</div>
+              <div style="font-size:11px;color:var(--text2);">Cuando un amigo vota tu consulta</div>
+            </div>
+            <div id="toggle-tribunal" onclick="toggleSwitch('toggle-tribunal')" style="width:36px;height:20px;background:var(--accent);border-radius:10px;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;">
+              <div style="width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:all .2s;"></div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+            <div>
+              <div style="font-size:13px;font-weight:600;">🌿 Frase motivacional diaria</div>
+              <div style="font-size:11px;color:var(--text2);">Una frase cada mañana para arrancar bien</div>
+            </div>
+            <div id="toggle-frase" onclick="toggleSwitch('toggle-frase')" style="width:36px;height:20px;background:var(--accent);border-radius:10px;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;">
+              <div style="width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:all .2s;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Frase personalizada -->
+        <div class="setting-row" onclick="alert('Editar tus frases motivacionales personalizadas')">
+          <span class="setting-icon">✏️</span>
+          <span class="setting-text">Editar mis frases motivacionales</span>
+          <span style="margin-left:auto;color:var(--text2);font-size:18px;">›</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- BOTTOM NAVBAR -->
+  <nav class="navbar">
+    <button class="nav-item active" id="nav-dashboard" onclick="navTo('screen-dashboard','nav-dashboard')">
+      <div class="nav-icon">🏠</div>
+      <span class="nav-label">Inicio</span>
+    </button>
+    <button class="nav-item" id="nav-metas" onclick="navTo('screen-metas','nav-metas')">
+      <div class="nav-icon">🎯</div>
+      <span class="nav-label">Metas</span>
+    </button>
+    <button class="nav-item notif-dot" id="nav-alertas" onclick="navTo('screen-alertas','nav-alertas')">
+      <div class="nav-icon">🔔</div>
+      <span class="nav-label">Alertas</span>
+    </button>
+    <button class="nav-item" id="nav-tribunal" onclick="navTo('screen-tribunal','nav-tribunal')">
+      <div class="nav-icon">👥</div>
+      <span class="nav-label">Tribunal</span>
+    </button>
+    <button class="nav-item" id="nav-logros" onclick="navTo('screen-logros','nav-logros')">
+      <div class="nav-icon">🏅</div>
+      <span class="nav-label">Logros</span>
+    </button>
+  </nav>
+
+  <!-- ===== MERCADO LIBRE SCREEN ===== -->
+  <!-- ===== MERCADO LIBRE — PANTALLA INICIAL ===== -->
+  <div id="screen-meli" style="position:absolute;inset:0;background:#ebebeb;overflow-y:auto;scrollbar-width:none;z-index:200;transition:opacity .4s ease;">
+
+      <!-- Status bar + Header ML sticky -->
+      <div style="position:sticky;top:0;z-index:50;">
+        <!-- Status bar amarilla -->
+        <div style="background:#fff200;padding:14px 20px 0;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:600;color:#333;">9:41</span>
+          <div style="width:120px;height:30px;background:#1a1a1a;border-radius:0 0 20px 20px;position:absolute;top:0;left:50%;transform:translateX(-50%);"></div>
+          <span style="font-size:12px;font-weight:600;color:#333;">●●● 100%</span>
+        </div>
+        <!-- Header ML -->
+        <div style="background:#fff200;padding:8px 14px 12px;display:flex;align-items:center;gap:10px;">
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#1a1a1a;line-height:1.1;flex-shrink:0;">mercado<br>libre</div>
+          <div style="flex:1;background:#fff;border:1.5px solid rgba(0,0,0,.1);border-radius:6px;padding:9px 12px;font-size:12px;color:#aaa;display:flex;align-items:center;gap:6px;">
+            <span>🔍</span><span>Buscar productos, marcas y más</span>
+          </div>
+          <div style="font-size:22px;flex-shrink:0;position:relative;">
+            🛒
+            <div style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#e05c6a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;">3</div>
+          </div>
+        </div>
+        <!-- Nav tabs -->
+        <div style="background:#fff;border-bottom:1px solid #eee;display:flex;overflow-x:auto;scrollbar-width:none;">
+          <div style="padding:10px 14px;font-size:12px;color:#3483fa;font-weight:700;border-bottom:2px solid #3483fa;white-space:nowrap;flex-shrink:0;">Inicio</div>
+          <div style="padding:10px 14px;font-size:12px;color:#777;white-space:nowrap;flex-shrink:0;">Ofertas</div>
+          <div style="padding:10px 14px;font-size:12px;color:#777;white-space:nowrap;flex-shrink:0;">Historial</div>
+          <div style="padding:10px 14px;font-size:12px;color:#777;white-space:nowrap;flex-shrink:0;">Moda</div>
+          <div style="padding:10px 14px;font-size:12px;color:#777;white-space:nowrap;flex-shrink:0;">Electrónica</div>
+        </div>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div style="font-size:11px;color:#1259c3;padding:8px 16px 6px;background:#fff;border-bottom:1px solid #f0f0f0;">Inicio › Ropa › Calzado › Zapatillas</div>
+
+      <!-- Imagen producto -->
+      <div style="background:linear-gradient(160deg,#f8f8f8,#eee);height:240px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+        <div style="font-size:110px;filter:drop-shadow(0 8px 24px rgba(0,0,0,.08));">👟</div>
+        <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;">
+          <div style="width:20px;height:4px;border-radius:2px;background:#3483fa;"></div>
+          <div style="width:6px;height:4px;border-radius:2px;background:#ddd;"></div>
+          <div style="width:6px;height:4px;border-radius:2px;background:#ddd;"></div>
+          <div style="width:6px;height:4px;border-radius:2px;background:#ddd;"></div>
+        </div>
+        <div style="position:absolute;top:12px;left:12px;background:#e05c6a;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;">ÚLTIMAS UNIDADES</div>
+      </div>
+
+      <!-- Info producto -->
+      <div style="background:#fff;padding:16px 16px 0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:11px;color:#999;">Nuevo | +500 vendidos</div>
+          <div style="font-size:20px;">🤍</div>
+        </div>
+        <div style="font-size:15px;color:#1a1a1a;line-height:1.45;margin-bottom:10px;">Zapatillas Urban Running Deportivas Mujer — Talle 38 — Negro/Blanco</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+          <span style="color:#f5a623;font-size:12px;letter-spacing:1px;">★★★★☆</span>
+          <span style="font-size:11px;color:#1259c3;">(247 opiniones)</span>
+        </div>
+        <div style="font-size:13px;color:#999;text-decoration:line-through;margin-bottom:2px;">$ 110.000 <span style="color:#00a650;text-decoration:none;font-weight:600;">23% OFF</span></div>
+        <div style="font-size:34px;color:#1a1a1a;font-weight:300;letter-spacing:-1.5px;line-height:1;margin-bottom:4px;">$ 85.000</div>
+        <div style="font-size:13px;color:#00a650;margin-bottom:4px;">en 12x $ 9.163 <strong>sin interés</strong></div>
+        <div style="font-size:13px;color:#00a650;font-weight:600;margin-bottom:14px;">🟢 Envío gratis · Llega mañana</div>
+
+        <!-- Talles -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px;color:#333;margin-bottom:8px;">Talle: <strong>38</strong> · <span style="color:#1259c3;font-size:11px;">Guía de talles</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="width:38px;height:38px;border:1.5px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#bbb;">36</div>
+            <div style="width:38px;height:38px;border:1.5px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#bbb;">37</div>
+            <div style="width:38px;height:38px;border:2px solid #3483fa;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3483fa;font-weight:700;background:#d8efff;">38</div>
+            <div style="width:38px;height:38px;border:1.5px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#bbb;">39</div>
+            <div style="width:38px;height:38px;border:1.5px solid #eee;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#ccc;text-decoration:line-through;">40</div>
+          </div>
+        </div>
+
+        <!-- Colores -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:13px;color:#333;margin-bottom:8px;">Color: <strong>Negro/Blanco</strong></div>
+          <div style="display:flex;gap:8px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:#1a1a1a;border:2.5px solid #3483fa;"></div>
+            <div style="width:30px;height:30px;border-radius:50%;background:#fff;border:1.5px solid #ddd;"></div>
+            <div style="width:30px;height:30px;border-radius:50%;background:#e05c6a;border:1.5px solid #ddd;"></div>
+          </div>
+        </div>
+
+        <!-- BOTONES DE COMPRA → disparan alerta Martina -->
+        <button onclick="triggerMartinaAlert()" style="width:100%;padding:15px;background:#3483fa;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;font-family:'DM Sans',sans-serif;box-shadow:0 4px 16px rgba(52,131,250,.3);">Comprar ahora</button>
+        <button onclick="triggerMartinaAlert()" style="width:100%;padding:15px;background:#d8efff;color:#3483fa;border:1.5px solid #3483fa;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:16px;">Agregar al carrito</button>
+
+        <!-- Vendedor -->
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #f0f0f0;">
+          <div style="width:36px;height:36px;border-radius:50%;background:#3483fa;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">U</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:#1259c3;">UrbanStyle_Oficial</div>
+            <div style="font-size:11px;color:#999;">MercadoLíder Platinum · 98% positivo</div>
+          </div>
+          <div style="font-size:12px;color:#3483fa;">Ver ›</div>
+        </div>
+
+        <!-- Descripción -->
+        <div style="padding:12px 0;border-top:1px solid #f0f0f0;">
+          <div style="font-size:13px;font-weight:600;color:#333;margin-bottom:6px;">Descripción</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">Zapatillas deportivas con suela antideslizante, plantilla acolchada y tela transpirable. Ideales para running, gym o uso diario.</div>
+        </div>
+        <div style="height:32px;"></div>
+      </div>
+  </div>
+
+  <!-- ===== PUSH NOTIFICATION (banner superior) ===== -->
+  <div id="push-notif" class="push-notif">
+    <!-- Fila superior: foto + texto -->
+    <div class="push-top-row">
+      <div class="push-icon" style="overflow:hidden;padding:0;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" style="width:100%;height:100%;object-fit:cover;border-radius:14px;"></div>
+      <div class="push-texts">
+        <div class="push-app">🌿 Martina · detectó una compra</div>
+        <div class="push-msg">⚠️ Zapatillas $85.000 — Esto te aleja de tu viaje a Europa ✈️</div>
+      </div>
+    </div>
+
+    <!-- Impacto visual -->
+    <div class="push-impact-row">
+      <div class="push-impact-left">
+        <span style="font-size:20px;">📉</span>
+        <div>
+          <div class="push-impact-label">Impacto en tu meta</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+            <div style="background:rgba(58,158,111,.3);border-radius:99px;height:6px;width:80px;overflow:hidden;">
+              <div style="width:60%;height:100%;background:var(--accent);border-radius:99px;"></div>
+            </div>
+            <span style="font-size:11px;color:rgba(255,255,255,.5);">60%</span>
+            <span style="color:var(--danger);font-size:13px;">→</span>
+            <div style="background:rgba(224,92,106,.3);border-radius:99px;height:6px;width:80px;overflow:hidden;">
+              <div style="width:54%;height:100%;background:var(--danger);border-radius:99px;"></div>
+            </div>
+            <span style="font-size:11px;color:var(--danger);">54%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones dentro del banner -->
+    <div class="push-btn-row">
+      <button class="push-btn-main" onclick="goToFromOverlay('screen-alertas')">⏳ Esperar 24hs</button>
+      <button class="push-btn-sec" onclick="goToFromOverlay('screen-tribunal')">👥 Preguntar amigos</button>
+    </div>
+  </div>
+    <div class="push-texts">
+      <div class="push-app">Martina · detectó algo</div>
+      <div class="push-msg">⚠️ Zapatillas $85.000 — Esto te aleja de Europa ✈️</div>
+    </div>
+    <div class="push-chevron">Abrir ›</div>
+  </div>
+
+
+</div><!-- /phone -->
+
+<script>
+  const navMap = {
+    'screen-dashboard': 'nav-dashboard',
+    'screen-metas': 'nav-metas',
+    'screen-alertas': 'nav-alertas',
+    'screen-tribunal': 'nav-tribunal',
+    'screen-logros': 'nav-logros',
+    'screen-perfil': 'nav-perfil',
+  };
+
+  let history = ['screen-dashboard'];
+  let currentActive = 'screen-dashboard';
+
+  function showScreen(id, direction) {
+    const all = document.querySelectorAll('.screen');
+    all.forEach(s => {
+      s.classList.remove('active', 'out-left');
+    });
+    const target = document.getElementById(id);
+    if (target) {
+      target.classList.add('active');
+      target.scrollTop = 0;
+    }
+    currentActive = id;
+
+    // update nav active state
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const navId = navMap[id];
+    if (navId) document.getElementById(navId)?.classList.add('active');
+  }
+
+  function goTo(id) {
+    history.push(id);
+    showScreen(id);
+  }
+
+  function goBack() {
+    if (history.length > 1) {
+      history.pop();
+      const prev = history[history.length - 1];
+      showScreen(prev);
+    }
+  }
+
+  function navTo(screenId, navId) {
+    history = [screenId];
+    showScreen(screenId);
+  }
+
+  // Quiz interaction
+  let selected = [];
+  function selectOption(el, val) {
+    el.classList.toggle('selected');
+    // count selected
+    const opts = document.querySelectorAll('.quiz-option');
+    let nos = 0;
+    opts.forEach(o => { if (o.classList.contains('selected') && o.getAttribute('onclick').includes('no')) nos++; });
+    if (document.querySelectorAll('.quiz-option.selected').length >= 2) {
+      const result = document.getElementById('quiz-result');
+      if (nos >= 2) {
+        result.innerHTML = '<div style="color:var(--accent3);font-weight:700;font-size:14px;">✅ Resultado: Reconsiderá la compra</div><div style="font-size:12px;color:var(--text2);margin-top:4px;">Respondiste "no" a 2 o más preguntas. Esperá 24 horas antes de decidir.</div>';
+        result.style.background = 'rgba(62,207,142,.08)';
+        result.style.borderColor = 'rgba(62,207,142,.25)';
+      } else {
+        result.innerHTML = '<div style="color:var(--accent2);font-weight:700;font-size:14px;">💛 Resultado: Podría ser una compra válida</div><div style="font-size:12px;color:var(--text2);margin-top:4px;">Pero igual consultá al Tribunal para estar segura.</div>';
+        result.style.background = 'rgba(247,201,72,.08)';
+        result.style.borderColor = 'rgba(247,201,72,.25)';
+      }
+      result.style.display = 'block';
+    }
+  }
+
+  // Toggle switch — funciona para cualquier id
+  function toggleSwitch(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const thumb = el.querySelector('div');
+    const isOn = el.dataset.on !== 'false';
+    if (isOn) {
+      el.style.background = 'rgba(0,0,0,.12)';
+      if (thumb) { thumb.style.right = 'auto'; thumb.style.left = '2px'; }
+      el.dataset.on = 'false';
+    } else {
+      el.style.background = 'var(--accent)';
+      if (thumb) { thumb.style.left = 'auto'; thumb.style.right = '2px'; }
+      el.dataset.on = 'true';
+    }
+  }
+
+  // Cooldown timer
+  let cooldownSeconds = 86387; // ~24h menos unos segundos para demo
+  let timerInterval = null;
+
+  function startCooldownTimer() {
+    timerInterval = setInterval(() => {
+      if (cooldownSeconds <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById('cooldown-wrap').style.display = 'none';
+        document.getElementById('action-btns').style.display = 'grid';
+        return;
+      }
+      cooldownSeconds--;
+      const h = String(Math.floor(cooldownSeconds / 3600)).padStart(2,'0');
+      const m = String(Math.floor((cooldownSeconds % 3600) / 60)).padStart(2,'0');
+      const s = String(cooldownSeconds % 60).padStart(2,'0');
+      const el = document.getElementById('cooldown-timer');
+      if (el) el.textContent = `${h}:${m}:${s}`;
+    }, 1000);
+  }
+
+  function cancelCooldown() {
+    clearInterval(timerInterval);
+    document.getElementById('cooldown-wrap').style.display = 'none';
+    document.getElementById('action-btns').style.display = 'grid';
+  }
+
+  // Hook cooldown into showScreen
+  const _baseShow = showScreen;
+  showScreen = function(id) {
+    _baseShow(id);
+    clearInterval(timerInterval);
+    if (id === 'screen-alertas') {
+      cooldownSeconds = 86387;
+      const el = document.getElementById('cooldown-timer');
+      if (el) el.textContent = '23:59:47';
+      const wrap = document.getElementById('cooldown-wrap');
+      const btns = document.getElementById('action-btns');
+      if (wrap) wrap.style.display = 'block';
+      if (btns) btns.style.display = 'none';
+      startCooldownTimer();
+    }
+  };
+  // ===== MERCADO LIBRE & ALERTA =====
+
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('.statusbar').style.display = 'none';
+    document.querySelector('.navbar').style.display = 'none';
+    // Push notification aparece después de 2.5s
+    setTimeout(() => {
+      document.getElementById('push-notif').classList.add('visible');
+    }, 2500);
+  });
+
+  function triggerMartinaAlert() {
+    // Shake the phone
+    const phone = document.querySelector('.phone');
+    let s = 0;
+    const shakeInterval = setInterval(() => {
+      s++;
+      phone.style.transform = s % 2 === 0 ? 'translateX(4px)' : 'translateX(-4px)';
+      if (s >= 6) { clearInterval(shakeInterval); phone.style.transform = ''; }
+    }, 55);
+    setTimeout(() => {
+      document.getElementById('push-notif').classList.add('visible');
+    }, 200);
+  }
+
+  function goToFromOverlay(screenId) {
+    document.getElementById('push-notif').classList.remove('visible');
+    const meli = document.getElementById('screen-meli');
+    meli.style.transition = 'opacity .4s ease, transform .4s ease';
+    meli.style.opacity = '0';
+    meli.style.transform = 'scale(.96)';
+    meli.style.pointerEvents = 'none';
+    setTimeout(() => {
+      document.querySelector('.statusbar').style.display = 'flex';
+      document.querySelector('.navbar').style.display = 'flex';
+      meli.style.display = 'none';
+      history = [screenId];
+      showScreen(screenId);
+    }, 380);
+  }
+
+  function showMartinaSheet() { /* no-op */ }
+  function dismissOverlay() { document.getElementById('push-notif').classList.remove('visible'); }
+  function handleOverlayClick() { }
+  function closeMeLi() { }
+
+  // Tabs Metas: Ahorro / Inversión
+  function switchMetasTab(tab) {
+    const isAhorro = tab === 'ahorro';
+    document.getElementById('metas-ahorro').style.display = isAhorro ? 'block' : 'none';
+    document.getElementById('metas-inversion').style.display = isAhorro ? 'none' : 'block';
+    const tA = document.getElementById('tab-ahorro');
+    const tI = document.getElementById('tab-inversion');
+    tA.style.borderBottomColor = isAhorro ? 'var(--accent)' : 'transparent';
+    tA.style.color = isAhorro ? 'var(--accent)' : 'var(--text2)';
+    tA.style.fontWeight = isAhorro ? '700' : '600';
+    tI.style.borderBottomColor = isAhorro ? 'transparent' : 'var(--accent)';
+    tI.style.color = isAhorro ? 'var(--text2)' : 'var(--accent)';
+    tI.style.fontWeight = isAhorro ? '600' : '700';
+  }
+
+  // Onboarding goal selector
+  function selectOnboardingGoal(el, emoji, nombre) {
+    document.querySelectorAll('.ob-opt').forEach(o => {
+      o.style.borderColor = 'var(--border)';
+      o.style.background = 'rgba(255,255,255,.8)';
+    });
+    el.style.borderColor = 'var(--accent)';
+    el.style.background = 'rgba(58,158,111,.1)';
+  }
+
+  // Nueva meta
+  function toggleEmojiPicker() {
+    const p = document.getElementById('emoji-picker');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  }
+  function setEmoji(e) {
+    document.getElementById('new-meta-emoji').textContent = e;
+    document.getElementById('emoji-picker').style.display = 'none';
+    updateMetaPreview();
+  }
+  function updateMetaPreview() {
+    const nombre = document.getElementById('meta-nombre')?.value;
+    const monto = document.getElementById('meta-monto')?.value;
+    const emoji = document.getElementById('new-meta-emoji')?.textContent;
+    const preview = document.getElementById('meta-preview');
+    if (nombre || monto) {
+      preview.style.display = 'block';
+      document.getElementById('preview-emoji').textContent = emoji;
+      document.getElementById('preview-nombre').textContent = nombre || 'Mi meta';
+      document.getElementById('preview-info').textContent = monto ? `Meta: $${Number(monto).toLocaleString('es-AR')}` : 'Meta: —';
+    }
+  }
+  document.addEventListener('input', e => {
+    if (e.target.id === 'meta-nombre' || e.target.id === 'meta-monto') updateMetaPreview();
+  });
+
+  function crearMeta() {
+    const nombre = document.getElementById('meta-nombre')?.value;
+    if (!nombre) { alert('Escribí un nombre para tu meta'); return; }
+    alert(`¡Meta "${nombre}" creada! 🎉`);
+    goTo('screen-metas');
+  }
+
+  // Nueva alerta manual
+  let tiendaSeleccionada = '';
+  function selectTienda(el, val) {
+    document.querySelectorAll('#screen-nueva-alerta [onclick^="selectTienda"]').forEach(o => {
+      o.style.background = 'rgba(255,255,255,.8)';
+      o.style.borderColor = 'var(--border)';
+      o.style.color = 'var(--text)';
+    });
+    el.style.background = 'rgba(58,158,111,.1)';
+    el.style.borderColor = 'var(--accent)';
+    el.style.color = 'var(--accent)';
+    tiendaSeleccionada = val;
+  }
+  function calcImpacto() {
+    const precio = parseFloat(document.getElementById('alerta-precio')?.value) || 0;
+    const box = document.getElementById('impacto-box');
+    if (precio > 0) {
+      box.style.display = 'block';
+      const meta = 750000;
+      const pct = Math.round((precio / meta) * 100);
+      const nuevo = Math.max(0, 60 - pct);
+      document.getElementById('impacto-pct').textContent = `–${pct}%`;
+      document.getElementById('impacto-nuevo').textContent = `${nuevo}%`;
+    } else {
+      box.style.display = 'none';
+    }
+  }
+  function enviarAlerta() {
+    const nombre = document.getElementById('alerta-nombre')?.value;
+    if (!nombre) { alert('Escribí qué querés comprar'); return; }
+    alert(`Alerta activada para "${nombre}" 🔔\nTu Tribunal ya fue notificado.`);
+    goTo('screen-alertas');
+  }
+</script>
+</body>
+</html>
